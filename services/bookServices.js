@@ -2,15 +2,15 @@ const algolia = require('../utils/db')
 const Books = algolia.initIndex('Books')
 const { v4: uuidv4 } = require('uuid');
 const textCaseHandler = require("../utils/textCaseHandler")
+const sanitizeHtml = require('sanitize-html')
 
 class bookService{
     addBook = async (options) => {
         try{
             let {title, description, status} = options
-            if (!title || !description || !status)
-            {
-                return {"data": {"success": false, "message": 'Request failed due to all required inputs were not included', "required inputs": "title, description, status"}, "statusCode": 417}
-            }
+            title = sanitizeHtml(title)
+            description = sanitizeHtml(description)
+            status = sanitizeHtml(status)
 
             options = {
                 objectID: uuidv4(),
