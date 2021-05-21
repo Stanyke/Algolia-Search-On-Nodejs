@@ -9,12 +9,6 @@ module.exports = function bookController() {
         return res.status(data.statusCode).json(data.data);
     }
 
-    //Get all books
-    this.getBooks = async (req, res) => {
-        const data = await bookServiceInstance.getBooks();
-        return res.status(data.statusCode).json(data.data);
-    }
-
     //Get one book
     this.getOneBook = async (req, res) => {
         const data = await bookServiceInstance.getOneBook(req.params);

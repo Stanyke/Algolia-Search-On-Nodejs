@@ -26,19 +26,6 @@ class bookService{
         }
     }
 
-    getBooks = async () => {
-        try{
-            let data = await algolia.multipleGetObjects([
-                { indexName: 'Books', objectID: 'myId1' },
-            ])
-
-            return {"data": {"success": true, "message": 'All books', data}, "statusCode": 200}
-        }
-        catch(err){
-            return {"data": {"success": false, "message": err.message}, "statusCode": 500}
-        }
-    }
-
     getOneBook = async (params) => {
         try{
             let {id} = params
@@ -51,7 +38,7 @@ class bookService{
                 attributesToRetrieve: ['title', 'description', 'objectID', 'status']
             })
 
-            return {"data": {"success": true, "message": 'Book ready', "data": data.data()}, "statusCode": 200}
+            return {"data": {"success": true, "message": 'Book ready', data}, "statusCode": 200}
         }
         catch(err){
             return {"data": {"success": false, "message": err.message}, "statusCode": 500}
@@ -61,13 +48,32 @@ class bookService{
     updateOneBook = async (params, options) => {
         try{
             let {id} = params
+            let {title, description, status} = options
             if (!id)
             {
                 return {"data": {"success": false, "message": 'Request failed due to all required inputs were not included', "required inputs": "id"}, "statusCode": 417}
             }
             
-            await firestore.collection('students').doc(id).update(options)
-            return {"data": {"success": true, "message": 'Book updated'}, "statusCode": 200}
+            let data = await Books.getObject([id], {
+                attributesToRetrieve: ['title', 'description', 'objectID', 'status']
+            })
+
+            let oldTitle = data.title
+            let oldDescription = data.description
+            let oldStatus = data.status
+
+            let newTitle = !title ? oldTitle : title
+            let newDescription = !description ? oldDescription : description
+            let newStatus = !status ? oldStatus : status
+
+            let newData = await Books.partialUpdateObject({
+                title: newTitle,
+                description: newDescription,
+                status: newStatus,
+                objectID: id
+            })
+
+            return {"data": {"success": true, "message": 'Book updated', "data": newData}, "statusCode": 200}
         }
         catch(err){
             return {"data": {"success": false, "message": err.message}, "statusCode": 500}
@@ -82,8 +88,8 @@ class bookService{
                 return {"data": {"success": false, "message": 'Request failed due to all required inputs were not included', "required inputs": "id"}, "statusCode": 417}
             }
             
-            await firestore.collection('students').doc(id).delete()
-            return {"data": {"success": true, "message": 'Book deleted'}, "statusCode": 200}
+            let data = await Books.deleteObjects([id])
+            return {"data": {"success": true, "message": 'Book deleted', data}, "statusCode": 200}
         }
         catch(err){
             return {"data": {"success": false, "message": err.message}, "statusCode": 500}
